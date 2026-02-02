@@ -1,7 +1,30 @@
-import React from 'react';
+"use client";
 
-export default function WalletPage()
+import React, { useEffect } from 'react';
+import { supabase } from '@/lib/supabase'; 
+
+export default function WalletPage() 
 {
+    useEffect(() => 
+    {
+        // This function runs as soon as the page loads
+        const testConnection = async () => 
+        {
+            const { data, error } = await supabase.from('wallets').select('*');
+            
+            if (error) 
+            {
+                console.error("Error connecting to Supabase:", error.message);
+            } 
+            else 
+            {
+                console.log("Connection Successful! Your wallets:", data);
+            }
+        };
+
+        testConnection();
+    }, []);
+
     return (
         <div className = "p-8 space-y-8">
 
