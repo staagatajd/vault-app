@@ -1,4 +1,5 @@
 import { LayoutDashboard, ReceiptText, Wallet, User } from "lucide-react";
+import Link from 'next/link';
 
 export default function Sidebar() {
   return (
@@ -8,18 +9,21 @@ export default function Sidebar() {
       </h2>
 
       <nav className="flex-1 space-y-2">
-        <a href="#" className="flex items-center gap-3 p-3 rounded-lg bg-zinc-200 font-medium text-zinc-900 transition-colors">
+
+        <Link href="/" className="flex items-center gap-3 p-3 rounded-lg bg-zinc-200 font-medium text-zinc-900 transition-colors">
           <LayoutDashboard size = {20} />
           <span>Dashboard</span>
-        </a>
-        <a href="#" className="flex items-center gap-3 p-3 rounded-lg hover:bg-zinc-100 text-zinc-500 transition-colors">
+        </Link>
+
+        <Link href="/transaction" className="flex items-center gap-3 p-3 rounded-lg hover:bg-zinc-100 text-zinc-500 transition-colors">
           <ReceiptText size={20} />
           <span>Transactions</span>
-        </a>
-        <a href="#" className="flex items-center gap-3 p-3 rounded-lg hover:bg-zinc-100 text-zinc-500 transition-colors">
+        </Link>
+
+        <Link href="/wallet" className="flex items-center gap-3 p-3 rounded-lg hover:bg-zinc-100 text-zinc-500 transition-colors">
           <Wallet size={20} />
           <span>Wallet</span>
-        </a>
+        </Link>
 
       </nav>
 
