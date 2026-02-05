@@ -67,10 +67,17 @@ export default function WalletPage()
             newBalance = currentBalance - numericAmount;
         }
 
-        const {error} = await supabase.from('wallets').update({balance: newBalance}).eq('id', id);
+        const {error: walletError} = await supabase.from('wallets').update({balance: newBalance}).eq('id', id);
 
-        if(!error)
+        if(!walletError)
         {
+            const {error: transactionError} = await supabase.from('transactions').insert([{wallet_id: id, amount: numericAmount, type: typeOfAction}]);
+
+            if(transactionError)
+            {
+                console.error("Error saving transaction:", transactionError);
+            }
+
             fetchWallets();
         }
     }
