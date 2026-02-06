@@ -30,9 +30,12 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} ${montserrat.variable} antialiased`}>
 
-        <div className="flex">
-          <Sidebar /> 
-          <main className="flex-1 bg-white">
+        <div className="flex h-screen overflow-hidden">
+          <aside className="shrink-0">
+            <Sidebar /> 
+          </aside>
+          
+          <main className="flex-1 bg-white overflow-y-auto">
             {children}
           </main>
         </div>

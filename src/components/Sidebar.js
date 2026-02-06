@@ -10,7 +10,7 @@ export default function Sidebar() {
   const isActive =  (path) => pathname === path;
 
   return (
-    <div className="w-64 h-screen bg-zinc-50 border-r border-zinc-200 p-6 flex flex-col">
+    <div className="w-64 h-full bg-zinc-50 border-r border-zinc-200 p-6 flex flex-col">
       <h2 className="text-xl font-black uppercase tracking-tighter mb-10" style={{ fontFamily: "var(--font-montserrat)" }}>
         Vault
       </h2>

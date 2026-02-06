@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 export default function TransactionPage()
 {
     const [wallets, setWallets] = useState([]);
+    const [transActions, setTransactions] = useState([]);
 
     const fetchWallets = async () =>
     {
@@ -17,9 +18,35 @@ export default function TransactionPage()
                 
     };
 
+    const fetchTransactions = async () =>
+    {
+        const {data,error} = await supabase.from('transactions').select('*').order('created_at', {ascending: false});
+
+        if(data)
+        {
+            setTransactions(data);
+        }
+        else
+        {
+            console.log(error);
+        }
+    };
+
+    const calculateStats = (walletId) =>
+    {
+        const walletTrans = transActions.filter(t => t.wallet_id === walletId);
+
+        const totalIncome = walletTrans.filter(t => t.type === 'income').reduce((sum, t) => sum + Number(t.amount), 0);
+        const totalExpense = walletTrans.filter(t => t.type === 'expense').reduce((sum, t) => sum + Number(t.amount), 0);
+        const net = totalIncome - totalExpense;
+
+        return {totalIncome, totalExpense, net};
+    }
+
     useEffect(() => 
     {
         fetchWallets();
+        fetchTransactions();
     }, []);
 
     return(
@@ -34,7 +61,11 @@ export default function TransactionPage()
             </header>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {wallets.map((wallet) => (
+                {wallets.map((wallet) => {
+
+                    const stats = calculateStats(wallet.id);
+
+                  return(  
                     <div key={wallet.id} className="bg-white border border-zinc-200 rounded-2xl p-6 shadow-sm flex flex-col h-[500px]">
 
                         {/* HEADER OF THE CARD */}
@@ -54,7 +85,7 @@ export default function TransactionPage()
 
                             </div>
                             
-                            <span className="text-2xl font-mono font-bold text-zinc-900">
+                            <span className="text-2xl font-mono font-bold text-zinc-900 border-b border-zinc-100">
                                 ₱{Number(wallet.balance).toLocaleString()}
                             </span>   
 
@@ -63,20 +94,53 @@ export default function TransactionPage()
                         <p className="text-xs uppercase tracking-widest text-zinc-400 font-bold mb-2">Recent Activities</p>
 
                         {/* SCROLLABLE LOG */}
-                        <div className="flex-1 overflow-y-auto mb-6 pr-2 space-y-3 border-b border-zinc-100">
-                        
-                            <div className="text-sm text-zinc-400 text-center py-10">
-                                records here sample
-                            </div>
-                        </div>
+                        <div className="flex-1 overflow-y-auto mb-0 pr-2 space-y-3">
 
-                        {/* THE GRAPH AREA */}
-                        <div className="h-32 bg-zinc-50 rounded-xl flex items-center justify-center border border-dashed border-zinc-200">
-                            <span className="text-zinc-400 text-sm">graph to be implemented</span>
+                            {transActions.filter((t) => t.wallet_id === wallet.id).length === 0 && 
+                            (<p className="text-center text-zinc-400 text-sm py-10 italic">No activity yet...</p>)}
+
+                            {transActions.filter((trans) => trans.wallet_id === wallet.id)
+                                .map((trans) => (
+                                    <div key = {trans.id} className={`rounded-xl flex justify-between items-center text-sm p-2 rounded-large transition-colors shadow-sm 
+                                    ${trans.type === 'income' ? 'bg-emerald-100 hover:bg-emerald-200': 'bg-rose-100 hover:bg-rose-200'}`} >
+                                        
+                                        <div className="flex flex-col">
+                                            <span className="font-medium text-zinc-700 capitalize">{trans.type}</span>
+                                            <span className="text-[15px] text-zinc-400">{new Date(trans.created_at).toLocaleString()}</span>
+                                        </div>
+
+                                        <span className = {`font-bold ${trans.type === 'income' ? 'text-emerald-700' : 'text-rose-700'}`}>
+                                            {trans.type === 'income' ? '+' : '-'}₱{Number(trans.amount).toLocaleString()}
+                                        </span>
+                                    </div>
+                                ))
+                            }
+                        </div>
+                        
+                        
+
+
+                        <div className="mt-4 grid grid-cols-3 gap-4 text-center pt-2 border-t border-zinc-200">
+                            <div>
+                                <p className="text-xs text-zinc-500">Total Income</p>
+                                <p className="font-bold text-emerald-600">₱{stats.totalIncome.toLocaleString()}</p>
+                            </div>
+
+                            <div>
+                                <p className="text-xs text-zinc-500">Total Expense</p>
+                                <p className="font-bold text-rose-600">₱{stats.totalExpense.toLocaleString()}</p>
+                            </div>
+
+                            <div>
+                                <p className="text-xs text-zinc-500">Net</p>
+                                <p className={`font-bold ${stats.net < 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+                                    ₱{stats.net.toLocaleString()}
+                                </p>
+                            </div>
                         </div>
          
                     </div>
-                ))}       
+                )})}       
 
             </div>
 
