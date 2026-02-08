@@ -9,6 +9,7 @@ export default function Dashboard() {
   const [balance, setBalance] = useState(0);
   const [income, setIncome] = useState(0);
   const [expense, setExpense] = useState(0);
+  const [transactions, setTransactions] = useState([]);
 
   const fetchBalance = async () => 
   {
@@ -56,6 +57,21 @@ export default function Dashboard() {
     return 0;
   }
 
+  const fetchAllTransactions = async () =>
+  {
+    const {data,error} = await supabase.from('transactions').select('*');
+
+    if(data)
+    {
+      setTransactions(data);
+    }
+    else
+    {
+      console.log(error);
+    }
+
+  }
+
 
   useEffect(() =>
   {
@@ -78,6 +94,7 @@ export default function Dashboard() {
       setExpense(result);
     }
 
+    fetchAllTransactions();
     getAllExpense();
     getAllIncome();
     getBalance();  
@@ -139,16 +156,25 @@ export default function Dashboard() {
         <h3 className="font-semibold mb-7">Recent Transactions</h3>
 
         <ul className="space-y-3">
-            {/* hardcoded usa kay i chchange mani later */}
-          <li className="flex justify-between border-b pb-2 text-sm">
-            <span>Coffee</span>
-            <span className="text-red-500">-₱50.00</span>
-          </li>
 
-          <li className="flex justify-between border-b pb-2 text-sm">
-            <span>Allowance</span>
-            <span className="text-green-500">+₱500.00</span>
-          </li>
+            {transactions.map((transact) => {
+              return (
+                <li key = {transact.id} className="flex justify-between border-b pb-2 text-sm ">
+                  <span>
+                    <span className="pr-4">
+                      {new Date(transact.created_at).toLocaleString()}
+                    </span>
+
+                    {/* to add here type of wallet      */}
+                  </span>
+
+                  <span className={transact.type === 'income' ? 'text-green-500' : 'text-red-500'}>
+                    {transact.type === 'income' ? '+' : '-'}₱{Number(transact.amount).toLocaleString()}
+                  </span>
+                  
+                </li>
+              );
+            })}
         </ul>
       </div>
       
