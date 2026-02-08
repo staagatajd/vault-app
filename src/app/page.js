@@ -1,6 +1,89 @@
+"use client";
+
 import Image from "next/image";
+import React, { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase';
 
 export default function Dashboard() {
+
+  const [balance, setBalance] = useState(0);
+  const [income, setIncome] = useState(0);
+  const [expense, setExpense] = useState(0);
+
+  const fetchBalance = async () => 
+  {
+    const {data, error} = await supabase.from('wallets').select('*');
+
+    if(!error && data)
+    { 
+      const totalBalance = data.reduce((sum, wallet) => sum + wallet.balance ,0);
+
+      return totalBalance;
+    }
+
+    return error;
+  }
+
+  const fecthAllIncome = async () =>
+  {
+    const {data, error} = await supabase.from('transactions').select('*');
+
+    if(!error && data)
+    {
+      const totalIncome = data.reduce((sum, transactions) => {
+        return sum + (transactions.type === 'income' ? transactions.amount : 0)
+      }, 0);
+
+      return totalIncome;
+    }
+
+    return 0;
+  }
+
+  const fetchAllExpense = async () =>
+  {
+    const {data, error} = await supabase.from('transactions').select('*');
+
+    if(!error && data)
+    {
+      const totalExpense = data.reduce((sum, transactions) => {
+        return sum + (transactions.type === 'expense' ? transactions.amount : 0)
+      }, 0);
+
+      return totalExpense;
+    }
+
+    return 0;
+  }
+
+
+  useEffect(() =>
+  {
+
+    const getBalance = async () =>
+    {
+      const result = await fetchBalance();
+      setBalance(result);
+    }
+
+    const getAllIncome = async () =>
+    {
+      const result = await fecthAllIncome();
+      setIncome(result);
+    }
+
+    const getAllExpense = async () =>
+    {
+      const result = await fetchAllExpense();
+      setExpense(result);
+    }
+
+    getAllExpense();
+    getAllIncome();
+    getBalance();  
+  }, [])
+
+
   return(
     <div className="p-8">
 
@@ -25,27 +108,27 @@ export default function Dashboard() {
             Balance
           </p>
           <h2 className="text-2xl font-bold">
-            ₱0.00
+            ₱{Number(balance).toLocaleString()}
           </h2>
         </div>
 
         {/* income(loss/gain) */}
         <div className="p-6 bg-zinc-50 border rounded-xl">
           <p className="text-sm text-zinc-500">
-            Income
+            Total Income
           </p>
           <h2 className="text-2xl font-bold text-green-600">
-            ₱0.00
+            ₱{Number(income).toLocaleString()}
           </h2>
         </div>
 
         {/* expenses */}
         <div className="p-6 bg-zinc-50 border rounded-xl">
           <p className="text-sm text-zinc-500">
-            Expenses
+            Total Expenses
           </p>
           <h2 className="text-2xl font-bold text-red-700">
-            ₱0.00
+             ₱{Number(expense).toLocaleString()}
           </h2>
         </div>
 
