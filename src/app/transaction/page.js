@@ -9,7 +9,7 @@ export default function TransactionPage()
 
     const fetchWallets = async () =>
     {
-        const {data , error} = await supabase.from('wallets').select('*');
+        const {data , error} = await supabase.from('wallets').select('*').order('created_at', {ascending: true});
 
         if(data)
         {
@@ -85,7 +85,7 @@ export default function TransactionPage()
 
                             </div>
                             
-                            <span className="text-2xl font-mono font-bold text-zinc-900 border-b border-zinc-100">
+                            <span className="max-w-44 truncate text-xl font-mono font-bold text-zinc-900 border-b border-zinc-100">
                                 ₱{Number(wallet.balance).toLocaleString()}
                             </span>   
 
@@ -109,7 +109,7 @@ export default function TransactionPage()
                                             <span className="text-[15px] text-zinc-400">{new Date(trans.created_at).toLocaleString()}</span>
                                         </div>
 
-                                        <span className = {`font-bold ${trans.type === 'income' ? 'text-emerald-700' : 'text-rose-700'}`}>
+                                        <span className = {`truncate text-xl font-bold ${trans.type === 'income' ? 'text-emerald-700' : 'text-rose-700'}`}>
                                             {trans.type === 'income' ? '+' : '-'}₱{Number(trans.amount).toLocaleString()}
                                         </span>
                                     </div>
@@ -123,17 +123,17 @@ export default function TransactionPage()
                         <div className="mt-4 grid grid-cols-3 gap-4 text-center pt-2 border-t border-zinc-200">
                             <div>
                                 <p className="text-xs text-zinc-500">Total Income</p>
-                                <p className="font-bold text-emerald-600">₱{stats.totalIncome.toLocaleString()}</p>
+                                <p className="font-bold text-emerald-600 truncate text-xl">₱{stats.totalIncome.toLocaleString()}</p>
                             </div>
 
                             <div>
                                 <p className="text-xs text-zinc-500">Total Expense</p>
-                                <p className="font-bold text-rose-600">₱{stats.totalExpense.toLocaleString()}</p>
+                                <p className="font-bold text-rose-600 truncate text-xl">₱{stats.totalExpense.toLocaleString()}</p>
                             </div>
 
                             <div>
                                 <p className="text-xs text-zinc-500">Net</p>
-                                <p className={`font-bold ${stats.net < 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+                                <p className={`font-bold truncate text-xl ${stats.net < 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
                                     ₱{stats.net.toLocaleString()}
                                 </p>
                             </div>

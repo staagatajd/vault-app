@@ -15,7 +15,7 @@ export default function WalletPage()
 
     const fetchWallets = async () =>
     {
-        const {data , error} = await supabase.from('wallets').select('*');
+        const {data , error} = await supabase.from('wallets').select('*').order('created_at', {ascending: true});
 
         if(data)
         {
@@ -92,7 +92,7 @@ export default function WalletPage()
                 fetchWallets();
             }
         }
-    }
+    };
 
     const editWalletName = async (id) =>
     {
@@ -109,7 +109,7 @@ export default function WalletPage()
         {
             fetchWallets();
         }
-    }
+    };
 
     useEffect(() => 
     {
@@ -200,7 +200,7 @@ export default function WalletPage()
 
                             <div>
                                 <p className="text-sm text-zinc-500">Current Balance</p>
-                                <p className="text-3xl font-mono font-bold">
+                                <p className="font-mono font-bold truncate text-xl">
                                     ₱{Number(wallet.balance).toLocaleString(undefined, {minimumFractionDigits: 2})}
                                 </p>
                             </div>

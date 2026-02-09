@@ -10,6 +10,7 @@ export default function Dashboard() {
   const [income, setIncome] = useState(0);
   const [expense, setExpense] = useState(0);
   const [transactions, setTransactions] = useState([]);
+  const [wallets, setWallets] = useState([]);
 
   const fetchBalance = async () => 
   {
@@ -23,7 +24,7 @@ export default function Dashboard() {
     }
 
     return error;
-  }
+  };
 
   const fecthAllIncome = async () =>
   {
@@ -39,7 +40,7 @@ export default function Dashboard() {
     }
 
     return 0;
-  }
+  };
 
   const fetchAllExpense = async () =>
   {
@@ -55,11 +56,11 @@ export default function Dashboard() {
     }
 
     return 0;
-  }
+  };
 
   const fetchAllTransactions = async () =>
   {
-    const {data,error} = await supabase.from('transactions').select('*');
+    const {data,error} = await supabase.from('transactions').select('*').order('created_at', {ascending: false});
 
     if(data)
     {
@@ -70,8 +71,24 @@ export default function Dashboard() {
       console.log(error);
     }
 
-  }
+  };
 
+  const fetchAllWallets = async () => 
+  {
+    const {data,error} = await supabase.from('wallets').select('*');
+
+    if(!error && data)
+    {
+      const walletMap = data.reduce((acc, wallet) => {
+        acc[wallet.id] = wallet;
+        return acc;
+      },{});
+
+      setWallets(walletMap);
+    }
+  };
+
+  
 
   useEffect(() =>
   {
@@ -94,11 +111,12 @@ export default function Dashboard() {
       setExpense(result);
     }
 
+    fetchAllWallets();
     fetchAllTransactions();
     getAllExpense();
     getAllIncome();
     getBalance();  
-  }, [])
+  }, []);
 
 
   return(
@@ -117,14 +135,14 @@ export default function Dashboard() {
       </header>
 
       {/* STAT SECTION */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
 
         {/* balance card */}
         <div className="p-6 bg-zinc-50 border rounded-xl"> 
           <p className="text-sm text-zinc-500">
-            Balance
+            All Wallet Balance
           </p>
-          <h2 className="text-2xl font-bold">
+          <h2 className="text-xl truncate font-bold">
             ₱{Number(balance).toLocaleString()}
           </h2>
         </div>
@@ -134,7 +152,7 @@ export default function Dashboard() {
           <p className="text-sm text-zinc-500">
             Total Income
           </p>
-          <h2 className="text-2xl font-bold text-green-600">
+          <h2 className="text-xl font-bold text-green-600 truncate">
             ₱{Number(income).toLocaleString()}
           </h2>
         </div>
@@ -144,8 +162,20 @@ export default function Dashboard() {
           <p className="text-sm text-zinc-500">
             Total Expenses
           </p>
-          <h2 className="text-2xl font-bold text-red-700">
+          <h2 className="text-xl font-bold text-red-600 truncate">
              ₱{Number(expense).toLocaleString()}
+          </h2>
+        </div>
+
+        {/* net */}
+        <div className="p-6 bg-zinc-50 border rounded-xl">
+          
+          <p className="text-sm text-zinc-500">
+            Net
+          </p>
+
+          <h2 className={`text-xl font-bold ${income-expense > 0 ? 'text-green-600' : 'text-red-600'} truncate`}>
+             ₱{Number(income-expense).toLocaleString()}
           </h2>
         </div>
 
@@ -158,6 +188,10 @@ export default function Dashboard() {
         <ul className="space-y-3">
 
             {transactions.map((transact) => {
+
+              const wallet = wallets[transact.wallet_id];
+              const walletType = wallet?.type || "...";
+              
               return (
                 <li key = {transact.id} className="flex justify-between border-b pb-2 text-sm ">
                   <span>
@@ -165,7 +199,9 @@ export default function Dashboard() {
                       {new Date(transact.created_at).toLocaleString()}
                     </span>
 
-                    {/* to add here type of wallet      */}
+                    <span className= { walletType === 'Cash' ? 'text-amber-600' : walletType === 'Bank' ? 'text-purple-600' : 'text-blue-600'}>
+                      {walletType}
+                    </span>
                   </span>
 
                   <span className={transact.type === 'income' ? 'text-green-500' : 'text-red-500'}>
