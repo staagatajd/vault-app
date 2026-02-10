@@ -185,7 +185,7 @@ export default function Dashboard() {
       <div className="bg-zinc-50 border rounded-xl p-6">
         <h3 className="font-semibold mb-7">Recent Transactions</h3>
 
-        <ul className="space-y-3">
+        <ul className="space-y-3 h-[250px] overflow-auto">
 
             {transactions.map((transact) => {
 
@@ -211,6 +211,14 @@ export default function Dashboard() {
                 </li>
               );
             })}
+
+            <div className="mx-auto w-48 pt-14">
+              {transactions.length === 0 && (
+              <div>
+                <p className="text-zinc-500">No activities yet... </p>
+              </div>
+            )}
+            </div>
         </ul>
       </div>
       

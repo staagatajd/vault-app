@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase'; 
 import { Trash2 } from "lucide-react";
 import { Pencil } from "lucide-react";
+import toast, { Toaster } from 'react-hot-toast';
 
 export default function WalletPage() 
 {
@@ -29,6 +30,7 @@ export default function WalletPage()
     {
         if(!name || !balance)
         {
+            toast.error('Please fill all fields');
             return;
         }
 
@@ -36,6 +38,7 @@ export default function WalletPage()
 
         if(!error)
         {
+            toast.success(`Wallet "${name}" created!`);
             setIsModalOpen(false); //closes the pop-up
 
             setBalance('');
@@ -43,6 +46,10 @@ export default function WalletPage()
             setType('Cash');
 
             fetchWallets();
+        }
+        else
+        {
+            toast.error('Failed to create wallet');
         }
     };
 
@@ -71,6 +78,7 @@ export default function WalletPage()
 
         if(!walletError)
         {
+            toast.success(`${typeOfAction === 'income' ? 'Income' : 'Expense'} added! `)
             const {error: transactionError} = await supabase.from('transactions').insert([{wallet_id: id, amount: numericAmount, type: typeOfAction}]);
 
             if(transactionError)
@@ -89,6 +97,7 @@ export default function WalletPage()
             const {error} = await supabase.from('wallets').delete().eq('id', id);
             if(!error)
             {
+                toast.success('Wallet deleted!')
                 fetchWallets();
             }
         }
@@ -107,6 +116,7 @@ export default function WalletPage()
 
         if(!error)
         {
+            toast.success('Wallet renamed!')
             fetchWallets();
         }
     };
@@ -118,6 +128,7 @@ export default function WalletPage()
 
     return (
         <div className = "p-8 space-y-8">
+            <Toaster position="top-right" />
 
             <div className = "flex justify-between items-center">
                 <div>

@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 export default function TransactionPage()
 {
     const [wallets, setWallets] = useState([]);
-    const [transActions, setTransactions] = useState([]);
+    const [transactions, setTransactions] = useState([]);
 
     const fetchWallets = async () =>
     {
@@ -34,7 +34,7 @@ export default function TransactionPage()
 
     const calculateStats = (walletId) =>
     {
-        const walletTrans = transActions.filter(t => t.wallet_id === walletId);
+        const walletTrans = transactions.filter(t => t.wallet_id === walletId);
 
         const totalIncome = walletTrans.filter(t => t.type === 'income').reduce((sum, t) => sum + Number(t.amount), 0);
         const totalExpense = walletTrans.filter(t => t.type === 'expense').reduce((sum, t) => sum + Number(t.amount), 0);
@@ -96,10 +96,10 @@ export default function TransactionPage()
                         {/* SCROLLABLE LOG */}
                         <div className="flex-1 overflow-y-auto mb-0 pr-2 space-y-3">
 
-                            {transActions.filter((t) => t.wallet_id === wallet.id).length === 0 && 
+                            {transactions.filter((t) => t.wallet_id === wallet.id).length === 0 && 
                             (<p className="text-center text-zinc-400 text-sm py-10 italic">No activity yet...</p>)}
 
-                            {transActions.filter((trans) => trans.wallet_id === wallet.id)
+                            {transactions.filter((trans) => trans.wallet_id === wallet.id)
                                 .map((trans) => (
                                     <div key = {trans.id} className={`rounded-xl flex justify-between items-center text-sm p-2 rounded-large transition-colors shadow-sm 
                                     ${trans.type === 'income' ? 'bg-emerald-100 hover:bg-emerald-200': 'bg-rose-100 hover:bg-rose-200'}`} >
@@ -109,7 +109,7 @@ export default function TransactionPage()
                                             <span className="text-[15px] text-zinc-400">{new Date(trans.created_at).toLocaleString()}</span>
                                         </div>
 
-                                        <span className = {`truncate text-xl font-bold ${trans.type === 'income' ? 'text-emerald-700' : 'text-rose-700'}`}>
+                                        <span className = {`truncate text-l font-bold ${trans.type === 'income' ? 'text-emerald-700' : 'text-rose-700'}`}>
                                             {trans.type === 'income' ? '+' : '-'}₱{Number(trans.amount).toLocaleString()}
                                         </span>
                                     </div>
@@ -143,6 +143,15 @@ export default function TransactionPage()
                 )})}       
 
             </div>
+            
+            <div className="pt-14">
+                {transactions.length === 0 && (
+                <div className="text-center p-12 border-2 border-dashed border-zinc-200 rounded-2xl">
+                    <p className="text-zinc-500">No activities yet...</p>
+                </div>
+                )}
+            </div>
+            
 
         </div>
 
