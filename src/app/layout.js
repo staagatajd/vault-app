@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import { Montserrat } from "next/font/google";
 import Sidebar from "@/components/Sidebar";
+import AuthWrapper from "@/components/AuthWrapper";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -20,26 +21,17 @@ export const metadata = {
 
 const montserrat = Montserrat({
   subsets: ["latin"],
-  weight: ["700", "900"], 
+  weight: ["700", "900"],
   variable: "--font-montserrat",
 });
-
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} ${montserrat.variable} antialiased`}>
-
-        <div className="flex h-screen overflow-hidden">
-          <aside className="shrink-0">
-            <Sidebar /> 
-          </aside>
-          
-          <main className="flex-1 bg-white overflow-y-auto">
-            {children}
-          </main>
-        </div>
-        
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} ${montserrat.variable} antialiased`}
+      >
+        <AuthWrapper>{children}</AuthWrapper>
       </body>
     </html>
   );
