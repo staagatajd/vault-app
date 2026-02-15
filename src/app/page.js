@@ -11,7 +11,7 @@ export default function Dashboard() {
   const [expense, setExpense] = useState(0);
   const [transactions, setTransactions] = useState([]);
   const [wallets, setWallets] = useState([]);
-
+  
   const fetchBalance = async () => 
   {
     const {data, error} = await supabase.from('wallets').select('*');

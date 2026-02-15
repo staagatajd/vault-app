@@ -16,7 +16,9 @@ export default function WalletPage()
 
     const fetchWallets = async () =>
     {
-        const {data , error} = await supabase.from('wallets').select('*').order('created_at', {ascending: true});
+        const { data : { user } } = await supabase.auth.getUser();
+
+        const {data , error} = await supabase.from('wallets').select('*').eq('user_id', user.id).order('created_at', {ascending: true});
 
         if(data)
         {
@@ -34,7 +36,8 @@ export default function WalletPage()
             return;
         }
 
-        const {error} = await supabase.from('wallets').insert([{ name: name, balance: parseFloat(balance), type: type}]);
+        const { data : { user } } = await supabase.auth.getUser();
+        const {error} = await supabase.from('wallets').insert([{ user_id: user.id, name: name, balance: parseFloat(balance), type: type}]);
 
         if(!error)
         {
@@ -55,6 +58,7 @@ export default function WalletPage()
 
     const updateBalance = async (id, currentBalance, typeOfAction) => 
     {
+        const { data : { user } } = await supabase.auth.getUser();
         const amount = prompt(`Enter ${typeOfAction} amount: `);
 
         if(amount === null || amount === "" || isNaN(amount))
@@ -74,7 +78,7 @@ export default function WalletPage()
             newBalance = currentBalance - numericAmount;
         }
 
-        const {error: walletError} = await supabase.from('wallets').update({balance: newBalance}).eq('id', id);
+        const {error: walletError} = await supabase.from('wallets').update({balance: newBalance}).eq('id', id).eq('user_id', user.id);
 
         if(!walletError)
         {
@@ -146,13 +150,14 @@ export default function WalletPage()
                     <div className="bg-white p-6 rounded-2xl w-full max-w-md shadow-xl">
                         <h2 className="text-xl font-bold mb-4">New Wallet</h2>
 
-                        <input 
+                        <input
+                            value = {name} 
                             className="w-full p-2 border border-zinc-200 rounded-lg mb-3"
                             placeholder="Wallet Name (e.g. GCash)"
                             onChange={(e) => setName(e.target.value)}
                         />
 
-                        <select className = "w-full mb-3 mr-5 p-2 border border-zinc-200 rounded-lg bg-white focus:outline-zinc-900 "
+                        <select value = {type} className = "w-full mb-3 mr-5 p-2 border border-zinc-200 rounded-lg bg-white focus:outline-zinc-900 "
                          onChange={(e) => setType(e.target.value)}>
                             <option value = "Cash"> Cash </option>
                             <option value = "E-Wallet"> E-Wallet</option>
@@ -160,6 +165,7 @@ export default function WalletPage()
                         </select>
 
                         <input
+                            value = {balance}
                             type = "number"
                             className="w-full p-2 border border-zinc-200 rounded-lg mb-3"
                             placeholder="Initial Balance (₱)"

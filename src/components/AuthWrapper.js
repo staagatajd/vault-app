@@ -46,6 +46,13 @@ export default function AuthWrapper({ children }) {
       setLoading(false);
     }
     else {
+
+      const { data: { user } } = await supabase.auth.getUser();
+
+      await supabase.from('profiles').insert([
+        {user_id: user.id, nickname: nickName}
+      ]);
+      
       toast.success("Account created! Logging you in...");
       setEmail("");
       setPassword("");
