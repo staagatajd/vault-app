@@ -1,10 +1,11 @@
 "use client";
 
-import { LayoutDashboard, ReceiptText, Wallet, User } from "lucide-react";
+import { LayoutDashboard, ReceiptText, Wallet, User, LogOut } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Sidebar() {
   const [nickName, setNickName] = useState("");
@@ -33,6 +34,13 @@ export default function Sidebar() {
       setNickName("User");
     }
   };
+
+
+  const router = useRouter();
+  const handleLogOut = async () => {
+    await supabase.auth.signOut();
+    router.push("/");
+  }
 
   useEffect(() => {
     fetchNickName();
@@ -73,14 +81,30 @@ export default function Sidebar() {
         </Link>
       </nav>
 
-      <div className="border-t border-zinc-200 pt-4 text-sm text-zinc-500">
-        <div className="w-8 h-8 rounded-full bg-zinc-200 flex items-center justify-center">
-          {" "}
-          {/*future change: change this soon to use actual photo*/}
-          <User size={16} />
-        </div>
+      <div className="border-t border-zinc-200 pt-6">
+        <div className="flex items-center justify-between group">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-zinc-200 flex items-center justify-center text-zinc-600">
+              <User size={20} />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-sm font-bold text-zinc-900 leading-none">
+                {nickName || 'User'}
+              </span>
 
-        <span>{nickName || 'User'}</span>
+              <span className= "text-xs text-zinc-400">
+
+                <span className="inline-block rounded-full bg-green-600 w-2 h-2"> </span>
+
+                <span className="pl-1">Active now</span>
+              </span>
+            </div>
+          </div>
+          
+          <button className="p-2 text-zinc-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer" title="Logout" onClick={handleLogOut}>
+            <LogOut size={20} />
+          </button>
+        </div>
       </div>
     </div>
   );

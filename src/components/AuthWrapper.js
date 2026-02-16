@@ -178,7 +178,7 @@ export default function AuthWrapper({ children }) {
                   onChange={(e) => setPassword(e.target.value)}
                 />
 
-                <button type = "button" className = "absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400" onClick={() => setShowPassword(!showPassword)}>
+                <button type = "button" className = "absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 cursor-pointer" onClick={() => setShowPassword(!showPassword)}>
                   {showPassword ? <Eye size={20} /> : <EyeClosed size={20} />}
                 </button>
               </div>
@@ -241,7 +241,7 @@ export default function AuthWrapper({ children }) {
                   onChange={(e) => setPassword(e.target.value)}
                 />
 
-                <button type = "button" className = "absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400" onClick={() => setShowPassword(!showPassword)}>
+                <button type = "button" className = "absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 cursor-pointer" onClick={() => setShowPassword(!showPassword)}>
                   {showPassword ? <Eye size={20} /> : <EyeClosed size={20} />}
                 </button>
               </div>
