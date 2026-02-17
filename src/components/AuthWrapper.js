@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase"; // check if your path is correct!
 import Sidebar from "@/components/Sidebar";
-import { User, Lock, PersonStanding, Mail, Eye, EyeClosed } from "lucide-react";
+import { User, Lock, PersonStanding, Mail, Eye, EyeClosed, Loader } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 
 export default function AuthWrapper({ children }) {
@@ -106,7 +106,8 @@ export default function AuthWrapper({ children }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <p className="text-xl font-bold">Loading Vault...</p>
+        <Loader className = "animate-spin mr-4" size = {32}/>
+        <p className="text-xl font-bold">Loading VAULT...</p>
       </div>
     );
   }

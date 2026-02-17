@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import toast, { Toaster } from 'react-hot-toast';
 
 export default function Sidebar() {
   const [nickName, setNickName] = useState("");
@@ -39,7 +40,8 @@ export default function Sidebar() {
   const router = useRouter();
   const handleLogOut = async () => {
     await supabase.auth.signOut();
-    router.push("/");
+    toast.success('Logged out successfully!');
+    setTimeout(() => router.push("/"), 500);
   }
 
   useEffect(() => {
@@ -48,6 +50,7 @@ export default function Sidebar() {
 
   return (
     <div className="w-64 h-full bg-zinc-50 border-r border-zinc-200 p-6 flex flex-col">
+      <Toaster position="top-right" />
       <h2
         className="text-xl font-black uppercase tracking-tighter mb-10"
         style={{ fontFamily: "var(--font-montserrat)" }}
