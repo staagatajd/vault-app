@@ -1,18 +1,33 @@
 "use client";
 
-import { LayoutDashboard, ReceiptText, Wallet, User, LogOut, X, CircleUserRound, Settings } from "lucide-react";
+import {
+  LayoutDashboard,
+  ReceiptText,
+  Wallet,
+  User,
+  LogOut,
+  X,
+  CircleUserRound,
+  Settings,
+  Camera,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import toast, { Toaster } from 'react-hot-toast';
+import toast, { Toaster } from "react-hot-toast";
 
 export default function Sidebar() {
   const [email, setEmail] = useState("");
   const [nickName, setNickName] = useState("");
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isProfileEditOpen, setIsProfileEditOpen] = useState(false);
+  const [profilePicture, setProfilePicture] = useState(null);
+  const [joinDate, setJoinDate] = useState("");
+  const [walletCount, setWalletCount] = useState(0);
+
+  const fileInputRef = useRef();
   const pathname = usePathname();
 
   const isActive = (path) => pathname === path;
@@ -23,7 +38,7 @@ export default function Sidebar() {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        setNickName('User');
+        setNickName("User");
         return;
       }
 
@@ -39,36 +54,135 @@ export default function Sidebar() {
     }
   };
 
-
   const router = useRouter();
   const handleLogOut = async () => {
     await supabase.auth.signOut();
-    toast.success('Logged out successfully!');
+    toast.success("Logged out successfully!");
     setTimeout(() => router.push("/"), 500);
-  }
+  };
 
   const fetchUserEmail = async () => {
-    const {data : {user}, error} = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
 
-    if(error)
-    {
-     console.log(error);
-     return null; 
-    }
-
-    if(user)
-    {
-      setEmail(user.email);
-    }
-    else
-    {
+    if (error) {
+      console.log(error);
       return null;
+    }
+
+    if (user) {
+      setEmail(user.email);
+    } else {
+      return null;
+    }
+  };
+
+  const fetchUserJoinDate = async () => {
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
+
+    if (error || !user) {
+      console.log(error);
+      return null;
+    }
+
+    const date = new Date(user.created_at);
+    setJoinDate(date.toLocaleDateString());
+  };
+
+  const fetchWalletCount = async () => {
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
+
+    if (error || !user) {
+      return null;
+    }
+
+    const { count, error: dbError } = await supabase
+      .from("wallets")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", user.id);
+
+    if (dbError) {
+      console.log(dbError);
+      return null;
+    }
+
+    setWalletCount(count);
+  };
+
+  const handleFileUpload = async (e) =>
+  {
+    const file = e.target.files[0];
+    if(!file)
+    {
+      return;
+    }
+
+    try
+    {
+      const {data : { user }} = await supabase.auth.getUser();
+
+      if(!user)
+      {
+        return;
+      }
+
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${user.id}-${Math.random()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file);
+
+      if(uploadError)
+      {
+        throw uploadError;
+      }
+
+      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
+
+      const { error: updateError } = await supabase.from('profiles').update({ avatar_url: publicUrl }).eq('user_id', user.id);
+
+      if(updateError) throw updateError;
+
+      setProfilePicture(publicUrl);
+      toast.success("Profile picture updated successfully!");
+    }
+    catch(error)
+    {
+      console.error(error);
+      toast.error("Faled to upload image.");
+    }
+  }
+
+  const fetchProfilePicture = async () =>
+  {
+    const { data: {user} } = await supabase.auth.getUser();
+
+    if(!user)
+    {
+      return;
+    }
+
+    const { data } = await supabase.from("profiles").select("avatar_url").eq("user_id", user.id).single();
+
+    if(data?.avatar_url)
+    {
+        setProfilePicture(data.avatar_url);
     }
   }
 
   useEffect(() => {
     fetchNickName();
     fetchUserEmail();
+    fetchUserJoinDate();
+    fetchWalletCount();
+    fetchProfilePicture();
   }, []);
 
   return (
@@ -110,29 +224,56 @@ export default function Sidebar() {
       <div className="border-t border-zinc-200 pt-6">
         <div className="flex items-center justify-between group">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-zinc-200 flex items-center justify-center text-zinc-600 cursor-pointer" onClick={() => setIsProfileOpen(!isProfileOpen)}>
-              <User size={20} />
+            <div
+              className="w-9 h-9 rounded-full bg-zinc-200 flex items-center justify-center text-zinc-600 cursor-pointer"
+              onClick={() => setIsProfileOpen(!isProfileOpen)}
+            >
+              {profilePicture ? (
+                <img
+                  src={profilePicture}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <User size={20} />
+              )}
             </div>
 
             {isProfileOpen && (
-              <div className= "fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-    
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                 <div className="bg-white p-2 rounded-xl w-full max-w-md shadow-xl relative modal-animate">
                   <div className="absolute absolute top-4 right-4">
-                    <X className="text-red-500 hover:text-red-700 hover:bg-red-100 rounded-lg transition-colors cursor-pointer" onClick = {() => setIsProfileOpen(!isProfileOpen)} size = {40}/>
+                    <X
+                      className="text-red-500 hover:text-red-700 hover:bg-red-100 rounded-lg transition-colors cursor-pointer"
+                      onClick={() => setIsProfileOpen(!isProfileOpen)}
+                      size={40}
+                    />
                   </div>
-                  
 
                   <div className="flex flex-col items-center mt-5 border-zinc-200 border-b pb-3">
-                    <div>pfp here</div>
+                    <div className="w-30 h-30 rounded-full bg-zinc-100 flex items-center justify-center mb-3 overflow-hidden border border-zinc-300">
+                      {profilePicture ? (
+                        <img
+                          src={profilePicture}
+                          className="w-full h-full object cover"
+                        />
+                      ) : (
+                        <User size={40} className="text-zinc-400" />
+                      )}
+                    </div>
 
-                    <div className ="text-l text-zinc-700 font-bold">{nickName}</div>
-                    <div className ="text-xs text-zinc-400 font-bold">{email}</div>
+                    <div className="text-l text-zinc-700 font-bold">
+                      {nickName}
+                    </div>
+                    <div className="text-xs text-zinc-400 font-bold">
+                      {email}
+                    </div>
                   </div>
 
                   <div className="pl-2 pr-2 mt-2 space-y-1 text-zinc-700">
-
-                    <div className="transition-colors cursor-pointer bg-slate-50 hover:bg-slate-100 flex items-center gap-2 rounded-t-lg p-2" onClick={() => setIsProfileEditOpen(!isProfileEditOpen)}>
+                    <div
+                      className="transition-colors cursor-pointer bg-slate-50 hover:bg-slate-100 flex items-center gap-2 rounded-t-lg p-2"
+                      onClick={() => setIsProfileEditOpen(!isProfileEditOpen)}
+                    >
                       <CircleUserRound size={20} />
                       My profile
                     </div>
@@ -142,24 +283,76 @@ export default function Sidebar() {
                       Settings
                     </div>
 
-                    <div className="transition-colors cursor-pointer bg-slate-50 hover:bg-slate-100 flex items-center gap-2 rounded-b-lg p-2" onClick={handleLogOut}>
+                    <div
+                      className="transition-colors cursor-pointer bg-slate-50 hover:bg-slate-100 flex items-center gap-2 rounded-b-lg p-2"
+                      onClick={handleLogOut}
+                    >
                       <LogOut size={20} />
                       Log out
                     </div>
-
                   </div>
                 </div>
               </div>
             )}
 
             {isProfileEditOpen && (
-              <div className= "fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                <div className="bg-white p-2 rounded-xl w-full max-w-md shadow-xl relative modal-animate h-100">
+              <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[60]">
+                <div className="bg-white p-2 rounded-xl w-full max-w-md shadow-xl relative modal-animate h-100 flex flex-col">
                   <div className="absolute absolute top-4 right-4">
-                    <X className="text-red-500 hover:text-red-700 hover:bg-red-100 rounded-lg transition-colors cursor-pointer" onClick = {() => setIsProfileEditOpen(!isProfileEditOpen)} size = {40}/>
+                    <X
+                      className="text-red-500 hover:text-red-700 hover:bg-red-100 rounded-lg transition-colors cursor-pointer"
+                      onClick={() => setIsProfileEditOpen(!isProfileEditOpen)}
+                      size={40}
+                    />
                   </div>
 
-                  <div>
+                  <div className="flex flex-col items-center mb-6 mt-6">
+                    <div className="relative w-24 h-24">
+                      <div className="w-full h-full rounded-full bg-zinc-100 flex items-center justify-center mb-3 overflow-hidden border border-zinc-300">
+                        {profilePicture ? (
+                          <img
+                            src={profilePicture}
+                            className="w-full h-full object cover"
+                          />
+                        ) : (
+                          <User size={40} className="text-zinc-400" />
+                        )}
+                      </div>
+
+                      <div
+                        className="absolute bottom-0 right-0 w-8 h-8 bg-white rounded-full flex items-center justify-center cursor-pointer hover:bg-neutral-200 transition-colors border border-0.5 border-zinc-300"
+                        onClick={() => fileInputRef.current.click()}
+                      >
+                        <Camera size={18} className="text-zinc-700"/>
+                      </div>
+
+                      <input type="file" accept="image/*" ref={fileInputRef} className="hidden" onChange={handleFileUpload} />
+                    </div>
+                  </div>
+
+                  <div className="pl-2 pr-2 mt-auto space-y-1 text-zinc-700 pb-2">
+                    <div className="transition-colors cursor-pointer bg-slate-200 hover:bg-slate-300 flex items-center gap-2 rounded-t-lg p-2 justify-between">
+                      <div className="text-sm">Email</div>
+
+                      <div className="text-sm">{email}</div>
+                    </div>
+                    <div className="transition-colors cursor-pointer bg-slate-200 hover:bg-slate-300 flex items-center gap-2 p-2 justify-between">
+                      <div className="text-sm">Nickname</div>
+
+                      <div className="text-sm">{nickName}</div>
+                    </div>
+
+                    <div className="transition-colors cursor-pointer bg-slate-200 hover:bg-slate-300 flex items-center gap-2 p-2 justify-between">
+                      <div className="text-sm">Wallet Count</div>
+
+                      <div className="text-sm">{walletCount}</div>
+                    </div>
+
+                    <div className="transition-colors cursor-pointer bg-slate-200 hover:bg-slate-300 flex items-center gap-2 rounded-b-lg p-2 justify-between">
+                      <div className="text-sm">Join Date</div>
+
+                      <div className="text-sm">{joinDate}</div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -167,12 +360,10 @@ export default function Sidebar() {
 
             <div className="flex flex-col">
               <span className="text-sm font-bold text-zinc-900 leading-none">
-                {nickName || 'User'}
+                {nickName || "User"}
               </span>
 
-              <span className= "text-xs text-zinc-400">
-                {email}
-              </span>
+              <span className="text-xs text-zinc-400">{email}</span>
             </div>
           </div>
         </div>
@@ -180,3 +371,5 @@ export default function Sidebar() {
     </div>
   );
 }
+
+//TO FIX - row level security in images, confirmation imag pick
