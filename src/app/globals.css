@@ -20,3 +20,10 @@ body {
 .modal-animate {
   animation: modalFade 0.2s ease-out forwards;
 }
+
+@variant dark (&:where(.dark, .dark *));
+
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+}
